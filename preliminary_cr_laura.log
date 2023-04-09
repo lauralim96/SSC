@@ -1,0 +1,694 @@
+------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\e0105060\Desktop\preliminary_cr_laura.log
+  log type:  text
+ opened on:   8 Apr 2023, 19:02:51
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. import delimited C:\Users\e0105060\Desktop\ED_OUT.csv
+(44 vars, 788,653 obs)
+
+. (2=2) (3=3) (4=4) (5=5) (6=6) (7=7) (8=3), generate(disp_event)
+( is not a valid command name
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. encode disp_group, generate(event)
+
+. recode event (1=1) (2=2) (3=3) (4=4) (5=5) (6=6) (7=7) (8=3), generate(disp_
+> event)
+(25 differences between event and disp_event)
+
+. //1=Active; 2=Admitted; 3=Died; 4=Discharged; 5=LAMA; 6=LWBS; 7=Transferred
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. *******************DATA PREPROCESSING***************
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. destring age_group, generate(age_clean) force
+age_group: contains nonnumeric characters; age_clean generated as double
+(33432 missing values generated)
+
+. drop if age_clean > 19
+(33,438 observations deleted)
+
+. recode age_clean (1=1) (2=1) (3=1) (4=1) (5=2) (6=2) (7=2) (8=2) (9=3) (10=3
+> ) (11=3) (12=3) (13=4) (14=4) (15=4) (16=4) (17=5) (18=5) (19=5), generate(a
+> ge_group_clean)
+(680179 differences between age_clean and age_group_clean)
+
+. drop if gender != "M" & gender != "F" & gender != "O"
+(1 observation deleted)
+
+. encode gender, generate(gender_clean)
+
+. drop if (gender_clean == 3)
+(15 observations deleted)
+
+. destring triagecode, generate(triagecode_clean) force
+triagecode: all characters numeric; triagecode_clean generated as byte
+
+. encode goc_value1, generate(goc_value1_clean)
+
+. encode inst_peer_grp, generate(inst_peer_grp_clean)
+
+. gen proccode1_3GY10VA = 0
+
+. replace proccode1_3GY10VA = 1 if proccode1 == "3GY10VA"
+(80,220 real changes made)
+
+. drop if disposition_totriage < 0
+(60 observations deleted)
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. *******************Cox-PH Model - OVERALL SURVIVAL***************
+. 
+. //Survival model
+. stset disposition_totriage, id(ptid) failure(disp_event==3) scale(1)
+
+                id:  ptid
+     failure event:  disp_event == 3
+obs. time interval:  (disposition_totriage[_n-1], disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+      2,451  multiple records at same instant                   PROBABLE ERROR
+             (disposition_totriage[_n-1]==disposition_totriage)
+         18  observations end on or before enter()
+        427  observations begin on or after (first) failure
+------------------------------------------------------------------------------
+    752,211  observations remaining, representing
+    523,557  subjects
+        809  failures in single-failure-per-subject data
+  164126014  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. sts graph, by(proccode1_3GY10VA) failure risktable ytitle(Cause-specific rat
+> e for Death) ylabel(0(0.001)0.005) xtitle(Time from arrival (minutes)) xlabe
+> l(0(2000)8000) title("")
+
+         failure _d:  disp_event == 3
+   analysis time _t:  disposition_totriage
+                 id:  ptid
+
+. stcox i.age_group_clean  i.gender_clean i.triagecode_clean _3yrhospitalaztio
+> n proccode1_3GY10VA i.goc_value1_clean i.inst_peer_grp_clean
+
+         failure _d:  disp_event == 3
+   analysis time _t:  disposition_totriage
+                 id:  ptid
+
+Iteration 0:   log likelihood = -802.81146
+Iteration 1:   log likelihood = -621.98189
+Iteration 2:   log likelihood = -536.22025
+Iteration 3:   log likelihood = -494.19967
+Iteration 4:   log likelihood = -487.15354
+Iteration 5:   log likelihood = -486.88711
+Iteration 6:   log likelihood = -486.82585
+Iteration 7:   log likelihood = -486.80332
+Iteration 8:   log likelihood = -486.79503
+Iteration 9:   log likelihood = -486.79198
+Iteration 10:  log likelihood = -486.79086
+Iteration 11:  log likelihood = -486.79045
+Iteration 12:  log likelihood =  -486.7903
+Iteration 13:  log likelihood = -486.79024
+Iteration 14:  log likelihood = -486.79022
+Iteration 15:  log likelihood = -486.79021
+Iteration 16:  log likelihood = -486.79021
+Iteration 17:  log likelihood = -486.79021
+Iteration 18:  log likelihood = -486.79021
+Iteration 19:  log likelihood = -486.79021
+Iteration 20:  log likelihood = -486.79021
+Iteration 21:  log likelihood = -486.79021
+Iteration 22:  log likelihood = -486.79021
+Iteration 23:  log likelihood = -486.79021
+Iteration 24:  log likelihood = -486.79021
+Iteration 25:  log likelihood = -486.79021
+Iteration 26:  log likelihood = -486.79021
+Iteration 27:  log likelihood = -486.79021
+Iteration 28:  log likelihood = -486.79021
+Iteration 29:  log likelihood = -486.79021
+Iteration 30:  log likelihood = -486.79021
+Iteration 31:  log likelihood = -486.79021
+Iteration 32:  log likelihood = -486.79021
+Iteration 33:  log likelihood = -486.79021
+Iteration 34:  log likelihood = -486.79021
+Iteration 35:  log likelihood = -486.79021
+Iteration 36:  log likelihood = -486.79021
+Iteration 37:  log likelihood = -486.79021
+Iteration 38:  log likelihood = -486.79021
+Iteration 39:  log likelihood = -486.79021
+Iteration 40:  log likelihood = -486.79021
+Iteration 41:  log likelihood = -486.79021
+Iteration 42:  log likelihood = -486.79021
+Iteration 43:  log likelihood = -486.79021
+Iteration 44:  log likelihood = -486.79021
+Iteration 45:  log likelihood = -486.79021
+Iteration 46:  log likelihood = -486.79021
+Refining estimates:
+Iteration 0:   log likelihood = -486.79021
+Iteration 1:   log likelihood = -486.79021
+
+Cox regression -- Breslow method for ties
+
+No. of subjects =        3,532                  Number of obs    =       3,769
+No. of failures =          112
+Time at risk    =      1365187
+                                                LR chi2(15)      =      632.04
+Log likelihood  =   -486.79021                  Prob > chi2      =      0.0000
+
+------------------------------------------------------------------------------
+          _t | Haz. Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+age_group_~n |
+          2  |   3.21e+08          .        .       .            .           .
+          3  |   1.72e+09   1.91e+09    19.13   0.000     1.95e+08    1.52e+10
+          4  |   1.93e+09   2.15e+09    19.13   0.000     2.16e+08    1.72e+10
+          5  |   2.16e+09   2.43e+09    19.06   0.000     2.36e+08    1.96e+10
+             |
+gender_clean |
+          M  |   1.331281   .2724462     1.40   0.162     .8913981    1.988236
+             |
+triagecode~n |
+          2  |   .4154307   .0975099    -3.74   0.000     .2622434    .6581011
+          3  |   .1437247   .0540701    -5.16   0.000     .0687551    .3004404
+          4  |   6.54e-21          .        .       .            .           .
+          5  |   4.64e-20          .        .       .            .           .
+          9  |   2.68e-18          .        .       .            .           .
+             |
+_3yrhospit~n |    1.02221   .2151581     0.10   0.917     .6766689    1.544201
+proccode1_~A |   2.155817   .5978341     2.77   0.006     1.251882    3.712448
+             |
+goc_value1~n |
+         C2  |   1.723161   .4093787     2.29   0.022     1.081689    2.745045
+         M1  |    .177284   .0671344    -4.57   0.000     .0843984    .3723959
+         M2  |   .5033815   .3716004    -0.93   0.352     .1184495    2.139248
+         R1  |   .0096444   .0058092    -7.71   0.000     .0029619    .0314039
+         R2  |   .5261346    .542053    -0.62   0.533      .069846    3.963254
+         R3  |   .1785178   .1327923    -2.32   0.021     .0415438    .7671078
+             |
+inst_peer_~n |
+   Teaching  |   .6483085   .1457082    -1.93   0.054     .4173237    1.007141
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. *******************COMPETING RISK REGRESSIONS***************
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. //Competing risk - DIED
+. stset disposition_totriage, failure(disp_event==3) scale(1)
+
+     failure event:  disp_event == 3
+obs. time interval:  (0, disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+         18  observations end on or before enter()
+------------------------------------------------------------------------------
+    755,089  observations remaining, representing
+        810  failures in single-record/single-failure data
+  222201249  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. stcrreg  age_clean gender_clean _3yrhospitalaztion proccode1_3GY10VA i.goc_v
+> alue1_clean i.triagecode_clean i.inst_peer_grp_clean, compete(disp_event=2,4
+> ,5,6,7)
+
+         failure _d:  disp_event == 3
+   analysis time _t:  disposition_totriage
+
+Iteration 0:   log pseudolikelihood = -573.87129  
+Iteration 1:   log pseudolikelihood = -568.87737  
+Iteration 2:   log pseudolikelihood = -568.77568  
+Iteration 3:   log pseudolikelihood = -568.77509  
+Iteration 4:   log pseudolikelihood = -568.77499  
+Iteration 5:   log pseudolikelihood = -568.77498  
+
+Competing-risks regression                       No. of obs       =      3,782
+                                                 No. of subjects  =      3,782
+Failure event   : disp_event == 3                No. failed       =        112
+Competing events: disp_event == 2 4 5 6 7        No. competing    =      3,670
+                                                 No. censored     =          0
+
+                                                 Wald chi2(16)    =    4098.61
+Log pseudolikelihood = -568.77498                Prob > chi2      =     0.0000
+
+------------------------------------------------------------------------------
+             |               Robust
+          _t |        SHR   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   age_clean |   .9992863   .0483295    -0.01   0.988     .9089132    1.098645
+gender_clean |   1.172178   .2295178     0.81   0.417      .798591    1.720532
+_3yrhospit~n |     .70141   .1358807    -1.83   0.067     .4798139    1.025348
+proccode1_~A |   2.146973    .619265     2.65   0.008     1.219857    3.778714
+             |
+goc_value1~n |
+         C2  |   2.434299   .5920824     3.66   0.000     1.511264    3.921095
+         M1  |   .1313435   .0507192    -5.26   0.000     .0616185    .2799664
+         M2  |    .289992   .2088447    -1.72   0.086     .0706924    1.189595
+         R1  |   .0033117   .0024754    -7.64   0.000     .0007652    .0143318
+         R2  |   .1419841   .1535965    -1.80   0.071     .0170381      1.1832
+         R3  |   .2188216   .1294185    -2.57   0.010     .0686532    .6974607
+             |
+triagecode~n |
+          2  |   .4013569   .1048194    -3.50   0.000      .240563    .6696264
+          3  |   .2095699    .081699    -4.01   0.000     .0976103     .449948
+          4  |   5.69e-07   2.27e-07   -36.00   0.000     2.60e-07    1.25e-06
+          5  |   1.99e-09   1.77e-09   -22.51   0.000     3.48e-10    1.14e-08
+          9  |   2.63e-07   2.36e-07   -16.86   0.000     4.51e-08    1.53e-06
+             |
+inst_peer_~n |
+   Teaching  |   .6430416   .1645491    -1.73   0.084     .3894247    1.061829
+------------------------------------------------------------------------------
+
+. (minutes)) xlabel(0(2000)8000) legend(order(1 "proccode1 != 3GY10VA" 2 "proc
+> code1 = 3GY10VA"))
+( is not a valid command name
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. stcurve, cif at1(proccode1_3GY10VA=0) at2(proccode1_3GY10VA=1) ytitle(Cumula
+> tive incidence of Disposition=Death) ylabel(0(0.0005)0.001) xtitle(Time from
+>  arrival (minutes)) xlabel(0(2000)8000) legend(order(1 "proccode1 != 3GY10VA
+> " 2 "proccode1 = 3GY10VA"))
+
+. stcurve, cif at1(triagecode_clean=1) at2(triagecode_clean=2) at3(triagecode_
+> clean=3) at4(triagecode_clean=4) at5(triagecode_clean=5) at6(triagecode_clea
+> n=9) ytitle(Cumulative incidence of Disposition=Death) ylabel(0(0.0005)0.001
+> ) xtitle(Time from arrival (minutes)) xlabel(0(2000)8000) legend(order(1 "tr
+> iagecode = 1" 2 "triagecode = 2" 3 "triagecode = 3" 4 "triagecode = 4" 5 "tr
+> iagecode = 5" 6 "triagecode = 9"))
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. //Competing risk _ Discharged
+. stset disposition_totriage, failure(disp_event==4) scale(1)
+
+     failure event:  disp_event == 4
+obs. time interval:  (0, disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+         18  observations end on or before enter()
+------------------------------------------------------------------------------
+    755,089  observations remaining, representing
+    600,461  failures in single-record/single-failure data
+  222201249  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. stcrreg  age_clean gender_clean _3yrhospitalaztion proccode1_3GY10VA i.goc_v
+> alue1_clean i.triagecode_clean i.inst_peer_grp_clean, compete(disp_event=2,3
+> ,5,6,7)
+
+         failure _d:  disp_event == 4
+   analysis time _t:  disposition_totriage
+
+Iteration 0:   log pseudolikelihood = -1178.7688  
+Iteration 1:   log pseudolikelihood = -1169.4911  
+Iteration 2:   log pseudolikelihood = -1169.1355  
+Iteration 3:   log pseudolikelihood = -1169.1328  
+Iteration 4:   log pseudolikelihood = -1169.1328  
+
+Competing-risks regression                       No. of obs       =      3,782
+                                                 No. of subjects  =      3,782
+Failure event   : disp_event == 4                No. failed       =        165
+Competing events: disp_event == 2 3 5 6 7        No. competing    =      3,617
+                                                 No. censored     =          0
+
+                                                 Wald chi2(16)    =     896.73
+Log pseudolikelihood = -1169.1328                Prob > chi2      =     0.0000
+
+------------------------------------------------------------------------------
+             |               Robust
+          _t |        SHR   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   age_clean |   1.155981   .0337041     4.97   0.000     1.091775    1.223964
+gender_clean |   .9740549   .1628348    -0.16   0.875     .7019178    1.351701
+_3yrhospit~n |   .9427539   .1577805    -0.35   0.725       .67911     1.30875
+proccode1_~A |   .8942295   .2980983    -0.34   0.737     .4652586    1.718714
+             |
+goc_value1~n |
+         C2  |   .2128412    .091721    -3.59   0.000     .0914623    .4953011
+         M1  |   .4241246   .1061587    -3.43   0.001     .2596792    .6927075
+         M2  |   3.407551   1.448422     2.88   0.004     1.481251    7.838918
+         R1  |   .0724049   .0220436    -8.62   0.000     .0398677    .1314968
+         R2  |   .2134474   .2315189    -1.42   0.154     .0254696    1.788789
+         R3  |   .3269639   .1736359    -2.11   0.035     .1154688    .9258378
+             |
+triagecode~n |
+          2  |   2.556117   .9815195     2.44   0.015     1.204285    5.425407
+          3  |   3.248464   1.287388     2.97   0.003     1.493968    7.063417
+          4  |   2.337194   1.217431     1.63   0.103     .8419936     6.48755
+          5  |   5.820782    4.53385     2.26   0.024     1.264661    26.79097
+          9  |   2.53e-06   2.14e-06   -15.24   0.000     4.82e-07    .0000133
+             |
+inst_peer_~n |
+   Teaching  |   1.257055      .2191     1.31   0.189     .8932915     1.76895
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. //Competing risk _ Admitted
+. stset disposition_totriage, failure(disp_event==2) scale(1)
+
+     failure event:  disp_event == 2
+obs. time interval:  (0, disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+         18  observations end on or before enter()
+------------------------------------------------------------------------------
+    755,089  observations remaining, representing
+    101,027  failures in single-record/single-failure data
+  222201249  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. stcrreg  age_clean gender_clean _3yrhospitalaztion proccode1_3GY10VA i.goc_v
+> alue1_clean i.triagecode_clean i.inst_peer_grp_clean, compete(disp_event=3,4
+> ,5,6,7)
+
+         failure _d:  disp_event == 2
+   analysis time _t:  disposition_totriage
+
+Iteration 0:   log pseudolikelihood = -13311.549  
+Iteration 1:   log pseudolikelihood = -13305.221  
+Iteration 2:   log pseudolikelihood = -13298.019  
+Iteration 3:   log pseudolikelihood = -13297.851  
+Iteration 4:   log pseudolikelihood =  -13297.85  
+Iteration 5:   log pseudolikelihood =  -13297.85  
+
+Competing-risks regression                       No. of obs       =      3,782
+                                                 No. of subjects  =      3,782
+Failure event   : disp_event == 2                No. failed       =      1,682
+Competing events: disp_event == 3 4 5 6 7        No. competing    =      2,100
+                                                 No. censored     =          0
+
+                                                 Wald chi2(16)    =     133.91
+Log pseudolikelihood =  -13297.85                Prob > chi2      =     0.0000
+
+------------------------------------------------------------------------------
+             |               Robust
+          _t |        SHR   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   age_clean |   1.053923   .0073436     7.54   0.000     1.039628    1.068415
+gender_clean |   1.029022   .0504335     0.58   0.559     .9347737    1.132774
+_3yrhospit~n |   .9440695   .0465673    -1.17   0.243     .8570723    1.039897
+proccode1_~A |   1.600635   .2016504     3.73   0.000     1.250422    2.048934
+             |
+goc_value1~n |
+         C2  |   .1552771   .1691227    -1.71   0.087     .0183657    1.312828
+         M1  |   8.306792   3.546134     4.96   0.000     3.597983    19.17819
+         M2  |    .732368   .7901317    -0.29   0.773     .0883876    6.068303
+         R1  |   10.65651   4.447903     5.67   0.000     4.702549    24.14886
+         R2  |   8.412165   5.228149     3.43   0.001     2.488211    28.43992
+         R3  |   7.928429   4.141032     3.96   0.000     2.848414    22.06842
+             |
+triagecode~n |
+          2  |   1.049682   .1274396     0.40   0.690     .8273997    1.331681
+          3  |   1.065086   .1325046     0.51   0.612     .8346202    1.359191
+          4  |   .9825674   .1486165    -0.12   0.907     .7304919    1.321628
+          5  |   1.316374   .3830872     0.94   0.345     .7441582    2.328592
+          9  |   3.023797   1.648785     2.03   0.042     1.038528    8.804142
+             |
+inst_peer_~n |
+   Teaching  |    .926408   .0487389    -1.45   0.146     .8356415    1.027033
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. //Competing risk _ Admitted
+. stset disposition_totriage, failure(disp_event==2) scale(1)
+
+     failure event:  disp_event == 2
+obs. time interval:  (0, disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+         18  observations end on or before enter()
+------------------------------------------------------------------------------
+    755,089  observations remaining, representing
+    101,027  failures in single-record/single-failure data
+  222201249  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. stcrreg  age_clean gender_clean _3yrhospitalaztion proccode1_3GY10VA i.goc_v
+> alue1_clean i.triagecode_clean i.inst_peer_grp_clean, compete(disp_event=3,4
+> ,5,6,7)
+
+         failure _d:  disp_event == 2
+   analysis time _t:  disposition_totriage
+
+Iteration 0:   log pseudolikelihood = -13311.549  
+Iteration 1:   log pseudolikelihood = -13305.221  
+Iteration 2:   log pseudolikelihood = -13298.019  
+Iteration 3:   log pseudolikelihood = -13297.851  
+Iteration 4:   log pseudolikelihood =  -13297.85  
+Iteration 5:   log pseudolikelihood =  -13297.85  
+
+Competing-risks regression                       No. of obs       =      3,782
+                                                 No. of subjects  =      3,782
+Failure event   : disp_event == 2                No. failed       =      1,682
+Competing events: disp_event == 3 4 5 6 7        No. competing    =      2,100
+                                                 No. censored     =          0
+
+                                                 Wald chi2(16)    =     133.91
+Log pseudolikelihood =  -13297.85                Prob > chi2      =     0.0000
+
+------------------------------------------------------------------------------
+             |               Robust
+          _t |        SHR   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   age_clean |   1.053923   .0073436     7.54   0.000     1.039628    1.068415
+gender_clean |   1.029022   .0504335     0.58   0.559     .9347737    1.132774
+_3yrhospit~n |   .9440695   .0465673    -1.17   0.243     .8570723    1.039897
+proccode1_~A |   1.600635   .2016504     3.73   0.000     1.250422    2.048934
+             |
+goc_value1~n |
+         C2  |   .1552771   .1691227    -1.71   0.087     .0183657    1.312828
+         M1  |   8.306792   3.546134     4.96   0.000     3.597983    19.17819
+         M2  |    .732368   .7901317    -0.29   0.773     .0883876    6.068303
+         R1  |   10.65651   4.447903     5.67   0.000     4.702549    24.14886
+         R2  |   8.412165   5.228149     3.43   0.001     2.488211    28.43992
+         R3  |   7.928429   4.141032     3.96   0.000     2.848414    22.06842
+             |
+triagecode~n |
+          2  |   1.049682   .1274396     0.40   0.690     .8273997    1.331681
+          3  |   1.065086   .1325046     0.51   0.612     .8346202    1.359191
+          4  |   .9825674   .1486165    -0.12   0.907     .7304919    1.321628
+          5  |   1.316374   .3830872     0.94   0.345     .7441582    2.328592
+          9  |   3.023797   1.648785     2.03   0.042     1.038528    8.804142
+             |
+inst_peer_~n |
+   Teaching  |    .926408   .0487389    -1.45   0.146     .8356415    1.027033
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. //Competing risk _ LWBS or LAMA
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. stset disposition_totriage, failure(disp_event==5,6) scale(1)
+
+     failure event:  disp_event == 5 6
+obs. time interval:  (0, disposition_totriage]
+ exit on or before:  failure
+
+------------------------------------------------------------------------------
+    755,139  total observations
+         32  event time missing (disposition_totriage>=.)       PROBABLE ERROR
+         18  observations end on or before enter()
+------------------------------------------------------------------------------
+    755,089  observations remaining, representing
+     46,891  failures in single-record/single-failure data
+  222201249  total analysis time at risk and under observation
+                                                at risk from t =         0
+                                     earliest observed entry t =         0
+                                          last observed exit t =    10,618
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. stcrreg  age_clean gender_clean _3yrhospitalaztion proccode1_3GY10VA i.goc_v
+> alue1_clean i.triagecode_clean i.inst_peer_grp_clean, compete(disp_event=2,3
+> ,4,7)
+
+         failure _d:  disp_event == 5 6
+   analysis time _t:  disposition_totriage
+
+Iteration 0:   log pseudolikelihood = -1572.0356  
+Iteration 1:   log pseudolikelihood = -1570.4841  
+Iteration 2:   log pseudolikelihood = -1570.4792  
+Iteration 3:   log pseudolikelihood = -1570.4792  
+Iteration 4:   log pseudolikelihood = -1570.4792  
+
+Competing-risks regression                       No. of obs       =      3,782
+                                                 No. of subjects  =      3,782
+Failure events  : disp_event == 5 6              No. failed       =        194
+Competing events: disp_event == 2 3 4 7          No. competing    =      3,588
+                                                 No. censored     =          0
+
+                                                 Wald chi2(16)    =   12270.76
+Log pseudolikelihood = -1570.4792                Prob > chi2      =     0.0000
+
+------------------------------------------------------------------------------
+             |               Robust
+          _t |        SHR   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   age_clean |   1.029789   .0197638     1.53   0.126     .9917721    1.069263
+gender_clean |   1.111239   .1625819     0.72   0.471     .8342012    1.480281
+_3yrhospit~n |   1.683698   .2574499     3.41   0.001     1.247697    2.272057
+proccode1_~A |   1.941737   .6445054     2.00   0.046     1.013113    3.721543
+             |
+goc_value1~n |
+         C2  |   1.033901   .6627314     0.05   0.959      .294346    3.631616
+         M1  |    8160799    5895139    22.03   0.000      1980833    3.36e+07
+         M2  |   .9457228   .6465055    -0.08   0.935     .2476704    3.611217
+         R1  |   1.44e+07    9187995    25.79   0.000      4107172    5.03e+07
+         R2  |   1.065627   .7530482     0.09   0.928     .2667384     4.25721
+         R3  |   1.76e+07   1.66e+07    17.72   0.000      2780971    1.12e+08
+             |
+triagecode~n |
+          2  |   .8438574   .2845083    -0.50   0.615     .4357974    1.634005
+          3  |   .9238314   .3218955    -0.23   0.820     .4666637    1.828864
+          4  |   1.300248   .5149954     0.66   0.507     .5982554    2.825957
+          5  |   1.527822   1.002858     0.65   0.518     .4220334    5.530941
+          9  |   1.10e-07   8.94e-08   -19.69   0.000     2.23e-08    5.41e-07
+             |
+inst_peer_~n |
+   Teaching  |    .789774   .1308445    -1.42   0.154     .5707966    1.092759
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. **************SIMULATION********************
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. destring registration_totriage, replace force
+registration_totriage: all characters numeric; replaced as int
+(79 missing values generated)
+
+. keep if registration_totriage>0
+(70,251 observations deleted)
+
+. destring pia_totriage, replace force
+pia_totriage: all characters numeric; replaced as int
+(41063 missing values generated)
+
+. keep if pia_totriage >0
+(1,189 observations deleted)
+
+. destring init_treat_loc_totriage, replace force
+init_treat_loc_totriage: all characters numeric; replaced as int
+(72748 missing values generated)
+
+. keep if init_treat_loc_totriage >0
+(3,959 observations deleted)
+
+. 
+end of do-file
+
+. do "C:\Users\e0105060\AppData\Local\Temp\STD144c_000000.tmp"
+
+. 
+. egen registration_sd = sd(registration_totriage)
+
+. egen pia_sd = sd(pia_totriage)
+
+. egen init_treat_loc_sd = sd(init_treat_loc_totriage)
+
+. egen phys_reassessment_sd = sd(phys_reassessment_totriage)
+(679740 missing values generated)
+
+. egen consult_requested_sd = sd(consult_requested_totriage)
+
+. egen lab_sd = sd(lab_totriage)
+
+. egen di_sd = sd(di_totriage)
+
+. egen disposition_sd = sd(disposition_totriage)
+
+. 
+end of do-file
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\e0105060\Desktop\preliminary_cr_laura.log
+  log type:  text
+ closed on:   8 Apr 2023, 20:38:46
+------------------------------------------------------------------------------
